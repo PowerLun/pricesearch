@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣購物平台價格比較</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .search-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn:active {
+            transform: scale(0.95);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .platform-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .platform-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .platform-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .platform-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .platform-card.pchome { border-left-color: #e74c3c; }
+        .platform-card.shopee { border-left-color: #ee4d2d; }
+        .platform-card.momo { border-left-color: #d4237a; }
+        .platform-card.yahoo { border-left-color: #720e9e; }
+        .platform-card.rakuten { border-left-color: #bf0000; }
+        .platform-card.ruten { border-left-color: #ff6b35; }
+
+        .platform-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .platform-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .pchome .platform-logo { background: #e74c3c; }
+        .shopee .platform-logo { background: #ee4d2d; }
+        .momo .platform-logo { background: #d4237a; }
+        .yahoo .platform-logo { background: #720e9e; }
+        .rakuten .platform-logo { background: #bf0000; }
+        .ruten .platform-logo { background: #ff6b35; }
+
+        .search-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .search-link:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .search-link-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-link-arrow {
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-section h3 {
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .info-section p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .tips {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .tips h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .tips ul {
+            color: #856404;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 5px;
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: #d8000c;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #d8000c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-form {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                min-width: 100%;
+            }
+            
+            .results {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛍️ 台灣購物比價王</h1>
+            <p>快速連結各大購物平台，輕鬆比較價格！</p>
+        </div>
+
+        <div class="search-section">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="請輸入商品名稱，例如：iPhone 15、Switch遊戲、美妝保養品..."
+                    required
+                >
+                <button type="submit" class="search-btn" id="searchBtn">
+                    🔍 開始比價
+                </button>
+            </form>
+        </div>
+
+        <div class="tips">
+            <h4>💡 使用小技巧</h4>
+            <ul>
+                <li>輸入商品名稱後，系統會自動生成各平台的搜尋連結</li>
+                <li>點擊連結會開啟新分頁，方便您同時比較多個平台</li>
+                <li>建議使用具體的商品名稱，例如「iPhone 15 Pro」而非「手機」</li>
+                <li>可以加上品牌名稱提高搜尋準確度</li>
+            </ul>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在生成搜尋連結...</p>
+        </div>
+
+        <div class="results" id="results"></div>
+
+        <div class="info-section">
+            <h3>📋 支援的購物平台</h3>
+            <p><strong>PChome 24h購物</strong> - 台灣最大24小時購物網站</p>
+            <p><strong>蝦皮購物</strong> - 東南亞領先的電商平台</p>
+            <p><strong>momo購物網</strong> - 富邦集團旗下購物平台</p>
+            <p><strong>Yahoo購物中心</strong> - Yahoo台灣購物服務</p>
+            <p><strong>樂天市場</strong> - 日本樂天集團台灣站</p>
+            <p><strong>露天拍賣</strong> - 台灣知名拍賣網站</p>
+        </div>
+    </div>
+
+    <script>
+        const platforms = [
+            {
+                name: 'PChome 24h購物',
+                class: 'pchome',
+                logo: 'P',
+                baseUrl: 'https://24h.pchome.com.tw/search/v3.3/?q=',
+                searchParam: ''
+            },
+            {
+                name: '蝦皮購物',
+                class: 'shopee',
+                logo: 'S',
+                baseUrl: 'https://shopee.tw/search?keyword=',
+                searchParam: ''
+            },
+            {
+                name: 'momo購物網',
+                class: 'momo',
+                logo: 'M',
+                baseUrl: 'https://www.momoshop.com.tw/search/searchShop.jsp?keyword=',
+                searchParam: ''
+            },
+            {
+                name: 'Yahoo購物中心',
+                class: 'yahoo',
+                logo: 'Y',
+                baseUrl: 'https://tw.buy.yahoo.com/search/product?p=',
+                searchParam: ''
+            },
+            {
+                name: '樂天市場',
+                class: 'rakuten',
+                logo: 'R',
+                baseUrl: 'https://www.rakuten.com.tw/search/',
+                searchParam: ''
+            },
+            {
+                name: '露天拍賣',
+                class: 'ruten',
+                logo: '露',
+                baseUrl: 'https://www.ruten.com.tw/find/?q=',
+                searchParam: ''
+            }
+        ];
+
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            
+            if (!query) return;
+
+            // 顯示載入動畫
+            loading.style.display = 'block';
+            results.innerHTML = '';
+            searchBtn.disabled = true;
+            searchBtn.textContent = '搜尋中...';
+
+            // 模擬載入時間
+            setTimeout(() => {
+                generateSearchLinks(query);
+                loading.style.display = 'none';
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🔍 開始比價';
+            }, 800);
+        });
+
+        function generateSearchLinks(query) {
+            results.innerHTML = '';
+            
+            platforms.forEach((platform, index) => {
+                const platformCard = createPlatformCard(platform, query);
+                platformCard.style.opacity = '0';
+                platformCard.style.transform = 'translateY(20px)';
+                results.appendChild(platformCard);
+                
+                // 動畫效果
+                setTimeout(() => {
+                    platformCard.style.transition = 'all 0.5s ease';
+                    platformCard.style.opacity = '1';
+                    platformCard.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+
+        function createPlatformCard(platform, query) {
+            const card = document.createElement('div');
+            card.className = `platform-card ${platform.class}`;
+            
+            const encodedQuery = encodeURIComponent(query);
+            const searchUrl = platform.baseUrl + encodedQuery;
+            
+            card.innerHTML = `
+                <div class="platform-name">
+                    <div class="platform-logo">${platform.logo}</div>
+                    ${platform.name}
+                </div>
+                <div class="search-links">
+                    <a href="${searchUrl}" target="_blank" class="search-link">
+                        <div class="search-link-text">
+                            <span>🔍</span>
+                            <span>搜尋「${query}」</span>
+                        </div>
+                        <span class="search-link-arrow">→</span>
+                    </a>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 快速搜尋示例
+        function quickSearch(query) {
+            searchInput.value = query;
+            searchForm.dispatchEvent(new Event('submit'));
+        }
+
+        // 入場動畫
+        window.addEventListener('load', function() {
+            const elements = document.querySelectorAll('.search-section, .header, .tips');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+        });
+
+        // 搜尋建議
+        const searchSuggestions = [
+            'iPhone 15', 'Nintendo Switch', 'MacBook', 'PS5', 
+            'AirPods', '小米手機', '美妝保養', '運動鞋'
+        ];
+
+        searchInput.addEventListener('focus', function() {
+            if (!this.value) {
+                const randomSuggestion = searchSuggestions[Math.floor(Math.random() * searchSuggestions.length)];
+                this.placeholder = `試試搜尋：${randomSuggestion}`;
+            }
+        });
+
+        searchInput.addEventListener('blur', function() {
+            this.placeholder = '請輸入商品名稱，例如：iPhone 15、Switch遊戲、美妝保養品...';
+        });
+    </script>
+</body>
+</html>
